@@ -2,18 +2,17 @@
   <section class="todoapp">
     <header>
       <h1>todo</h1>
-      <input type="text" class="new-todo" v-model="newTodo">
+      <input type="text" class="new-todo" v-model="newTodo" @keyup.enter="add">
     </header>
 
     <section class="main">
       <input id="toggle-all" class="toggle-all" type="checkbox">
       <label for="toggle-all" title="Mark all as complete"></label>
       <ul class="todo-list">
-        <li class="todo">
-          <!-- class in "completed", "editing" -->
+        <li v-for="todo in todos" class="todo"> <!-- class in "completed", "editing" -->
           <div class="view">
             <input class="toggle" type="checkbox">
-            <label>할일을 적어봐요.</label>
+            <label>{{todo.text}}</label>
             <button class="destroy"></button>
           </div>
           <input class="edit" type="text">
@@ -43,15 +42,28 @@
 </template>
 
 <script>
-import "todomvc-app-css/index.css";
+import 'todomvc-app-css/index.css'
+
+export const STATUS_ACTIVE = 'STATUS_ACTIVE'
+export const STATUS_COMPLETED = 'STATUS_COMPLETED'
 
 export default {
-  name: "app",
+  name: 'app',
+  methods: {
+    add() {
+      this.todos.push({
+        text: this.newTodo,
+        status: STATUS_ACTIVE
+      })
+
+      this.newTodo = ''
+    }
+  },
   data() {
     return {
       todos: [],
-      newTodo: ""
-    };
+      newTodo: ''
+    }
   }
-};
+}
 </script>
