@@ -2,20 +2,32 @@
   <section class="todoapp">
     <header>
       <h1>todo</h1>
-      <input type="text" class="new-todo" v-model="newTodo" @keyup.enter="add">
+      <input
+          v-model="newTodo"
+          @keyup.enter="add"
+          class="new-todo"
+          autofocus>
     </header>
 
     <section class="main">
       <input id="toggle-all" class="toggle-all" type="checkbox">
       <label for="toggle-all" title="Mark all as complete"></label>
       <ul class="todo-list">
-        <li v-for="todo in todos" class="todo"> <!-- class in "completed", "editing" -->
+        <li
+            v-for="(todo, index) in todos"
+            :key="index"
+            :class="{completed: todo.completed, editing: editing === index}"
+            @dblclick="edit(index)"
+        >
           <div class="view">
-            <input class="toggle" type="checkbox">
+            <input class="toggle" type="checkbox" @change="complete($event, index)">
             <label>{{todo.text}}</label>
-            <button class="destroy"></button>
+            <button class="destroy" @click="remove(index)"></button>
           </div>
-          <input class="edit" type="text">
+          <input
+              v-model="todo.text"
+              @keyup.enter="edit(index, true)"
+              class="edit">
         </li>
       </ul>
     </section>
@@ -44,25 +56,35 @@
 <script>
 import 'todomvc-app-css/index.css'
 
-export const STATUS_ACTIVE = 'STATUS_ACTIVE'
-export const STATUS_COMPLETED = 'STATUS_COMPLETED'
-
 export default {
   name: 'app',
   methods: {
     add() {
-      this.todos.push({
-        text: this.newTodo,
-        status: STATUS_ACTIVE
-      })
+      if (this.newTodo) {
+        this.todos.push({
+          text: this.newTodo,
+          completed: false
+        })
 
-      this.newTodo = ''
+        this.newTodo = ''
+      }
+    },
+    edit(index, finish) {
+      if (!finish) this.editing = index
+      else this.editing = -1
+    },
+    remove(index) {
+      this.todos.splice(index, 1)
+    },
+    complete(e, index) {
+      this.todos[index].completed = e.target.checked
     }
   },
   data() {
     return {
       todos: [],
-      newTodo: ''
+      newTodo: '',
+      editing: -1
     }
   }
 }
