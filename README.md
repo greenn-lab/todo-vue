@@ -1,29 +1,5 @@
-# todo-vue
+# 가람씨, 한신과장님. 업데이트 늦어서 미안해요~
 
-## Project setup
-```
-npm install
-```
+그래도 덕분에 자투리 시간을 나름 재밌게, 의미있게 보낸것 같네요.
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Run your tests
-```
-npm run test
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+계속 화이팅~ 하세요~~
