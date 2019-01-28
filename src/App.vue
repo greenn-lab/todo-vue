@@ -10,98 +10,61 @@
       >
     </header>
 
-    <section class="main">
-      <input id="toggle-all" class="toggle-all" type="checkbox">
-      <label for="toggle-all" title="Mark all as complete"></label>
-      <ul class="todo-list">
-        <li
-            v-for="(todo, index) in filtered(todos)"
-            :key="index"
-            :class="{completed: todo.completed, editing: editing === index}"
-            @dblclick="edit(index)"
-        >
-          <div class="view">
-            <input class="toggle" type="checkbox" :checked="todo.completed" @change="complete($event, index)">
-            <label>{{todo.text}}</label>
-            <button class="destroy" @click="remove(index)"></button>
-          </div>
-          <input
-              v-model="todo.text"
-              @keyup.enter="edit(index, true)"
-              class="edit"
-          >
-        </li>
-      </ul>
-    </section>
-    <footer class="footer">
-      <span class="todo-count">
-        <strong>{{ output() }}</strong> left
-      </span>
-      <ul class="filters">
-        <li>
-          <a :class="{selected: !filter}" @click="filtering(null)">All</a>
-        </li>
-        <li>
-          <a :class="{selected: filter === false}" @click="filtering(false)">Active</a>
-        </li>
-        <li>
-          <a :class="{selected: filter === true}" @click="filtering(true)">Completed</a>
-        </li>
-      </ul>
-      <button class="clear-completed" @click="clearCompleted">Clear completed</button>
-    </footer>
+    <todo-list
+        :todos="todos"
+        :filter="filter"
+        @remove="remove"
+        @complete="complete"
+    />
+
+    <todo-footer
+        :todos="todos"
+        :filter="filter"
+        @filtering="filtering"
+    />
   </section>
 </template>
 
 <script>
-import 'todomvc-app-css/index.css'
+  import TodoList from './components/TodoList'
+  import TodoFooter from './components/TodoFooter'
 
-export const STORAGE_KEY = 'todoapp-storage-key'
+  import 'todomvc-app-css/index.css'
+
+  export const STORAGE_KEY = 'todoapp-storage-key'
 
 export default {
   name: 'app',
+  components: {
+    TodoList,
+    TodoFooter
+  },
   methods: {
     add() {
       if (this.newTodo) {
         this.todos.push({
           text: this.newTodo,
-          completed: false
+          completed: false,
+          editing: false
         })
 
         this.newTodo = ''
       }
     },
-    edit(index, finish) {
-      if (!finish) this.editing = index
-      else {
-        this.editing = -1
-        this.persist()
-      }
+    editReady(index) {
+      this.todos[index].editing = true
+    },
+    editSave(index) {
+      this.todos[index].editing = false
     },
     remove(index) {
       this.todos.splice(index, 1)
     },
-    complete(e, index) {
-      this.todos[index].completed = e.target.checked
-      this.persist()
-    },
-    persist() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.todos))
-    },
-    clearCompleted() {
-      this.todos = this.todos.filter(i => !i.completed)
+    complete(index, checked) {
+      this.todos[index].completed = checked
     },
     filtering(filter) {
       this.filter = filter
-    },
-    filtered(val) {
-      return val.filter(i => {
-        return this.filter === null || i.completed === this.filter
-      })
-    },
-    output() {
-      const count = this.todos.filter(i => !i.completed).length
-      return `${count} item${count > 1 ? 's' : ''}`
     }
   },
   data() {
@@ -114,7 +77,10 @@ export default {
   },
   watch: {
     todos() {
-      this.persist()
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.todos))
+    },
+    todo() {
+      console.log('dirty checking "todo"')
     }
   },
   created() {
