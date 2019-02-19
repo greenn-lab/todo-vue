@@ -5,26 +5,31 @@
   </div>
   <section v-else class="todoapp">
     <div>
-      <label for="new-todo" class="user-info">
-        <img :src="user.image">
-        <span>{{user.name}}</span>
+      <div class="user-info">
+        <img :src="user.image" />
+        <span>{{ user.name }}</span>
         <button @click="logout()">Logout</button>
-      </label>
+      </div>
 
       <header>
         <h1>todo</h1>
-        <input type="text" id="new-todo" class="new-todo" />
+        <input
+          type="text"
+          class="new-todo"
+          v-model="text"
+          @keypress.enter="save()"
+        />
       </header>
 
       <section class="main">
         <input id="toggle-all" class="toggle-all" type="checkbox" />
         <label for="toggle-all" title="Mark all as complete"></label>
         <ul class="todo-list">
-          <li class="todo">
+          <li v-for="todo in todos" :key="todo.id" class="todo">
             <!-- class in "completed", "editing" -->
             <div class="view">
               <input class="toggle" type="checkbox" />
-              <label>할일을 적어봐요.</label>
+              <label>{{ todo.text }}</label>
               <button class="destroy"></button>
             </div>
             <input class="edit" type="text" />
@@ -53,16 +58,30 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapGetters, mapActions } from 'vuex'
+import { db } from './firebase'
+
 import 'todomvc-app-css/index.css'
 
 export default {
   name: 'todo-app',
+  data() {
+    return {
+      text: ''
+    }
+  },
   computed: {
+    ...mapGetters(['todos']),
     ...mapState('auth', ['user', 'isLoggedIn'])
   },
   methods: {
-    ...mapActions('auth', ['loginByGoogle', 'loginByTwitter', 'logout'])
+    ...mapActions('auth', ['loginByGoogle', 'loginByTwitter', 'logout']),
+    save() {
+      this.$store.dispatch('setTodo', this.text)
+    }
+  },
+  created() {
+    this.$store.dispatch('initTodo', db.collection('/todos').orderBy('created'))
   }
 }
 </script>
