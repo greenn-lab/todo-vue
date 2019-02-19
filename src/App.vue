@@ -1,14 +1,19 @@
 <template>
-  <section class="todoapp">
-    <div v-if="!isLoggedIn">
-      <button @click="loginByGoogle()">Sign in by Google</button>
-      <button @click="loginByTwitter()">Sign in by Twitter</button>
-    </div>
+  <div v-if="!isLoggedIn">
+    <button @click="loginByGoogle()">Sign in by Google</button>
+    <button @click="loginByTwitter()">Sign in by Twitter</button>
+  </div>
+  <section v-else class="todoapp">
+    <div>
+      <label for="new-todo" class="user-info">
+        <img :src="user.image">
+        <span>{{user.name}}</span>
+        <button @click="logout()">Logout</button>
+      </label>
 
-    <div v-if="isLoggedIn">
       <header>
         <h1>todo</h1>
-        <input type="text" class="new-todo" />
+        <input type="text" id="new-todo" class="new-todo" />
       </header>
 
       <section class="main">
@@ -57,7 +62,27 @@ export default {
     ...mapState('auth', ['user', 'isLoggedIn'])
   },
   methods: {
-    ...mapActions('auth', ['loginByGoogle', 'loginByTwitter'])
+    ...mapActions('auth', ['loginByGoogle', 'loginByTwitter', 'logout'])
   }
 }
 </script>
+
+<style lang="scss">
+.user-info {
+  font-size: 2em;
+  line-height: 3em;
+
+  & > img {
+    border-radius: 50%;
+    height: 2em;
+    margin: 1em;
+    vertical-align: middle;
+    width: 2em;
+  }
+
+  & > button {
+    float: right;
+    margin: 1em;
+  }
+}
+</style>
