@@ -1,39 +1,81 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import * as firebase from 'firebase'
 import { firebaseMutations, firebaseAction } from 'vuexfire'
 
 import auth from './auth'
-import { db } from '../firebase'
+import { db, utils } from '../firebase'
 
 Vue.use(Vuex)
 
-export default new Vuex.Store({
+const collections = {
+  todo: db.collection('/todos')
+}
+
+const checkAccessable = todo => {
+  if (todo.user_id != auth.state.user.id) {
+    alert('This is not yours. check your account!')
+    return false
+  }
+
+  return true
+}
+
+const store = new Vuex.Store({
   state: {
-    todos: []
+    todos: [],
+    filter: 'ALL'
   },
-  mutations: firebaseMutations,
+  mutations: {
+    ...firebaseMutations,
+    setFilter(state, filter) {
+      state.filter = filter
+    }
+  },
   getters: {
-    todos: state => state.todos
+    todos: ({ todos, filter }) =>
+      filter === 'ALL' ? todos : todos.filter(i => i.status === filter),
+    todosCount: (_, getters) => getters.todos.length,
+    filter: ({ filter }) => filter
   },
   actions: {
     initTodo: firebaseAction(({ bindFirebaseRef }, ref) =>
       bindFirebaseRef('todos', ref)
     ),
-    setTodo(_, text) {
-      const id = uuid()
-      const todo = {
-        id,
-        text,
-        status: 'ACTIVE',
-        created: firebase.firestore.FieldValue.serverTimestamp()
+    setFilter({ commit }, filter) {
+      commit('setFilter', filter)
+    },
+    async setTodo(_, todo) {
+      if (!todo.id) {
+        Object.assign(todo, {
+          id: utils.generateUUID(),
+          status: 'ACTIVE',
+          created: utils.getServerTimestamp(),
+          user_id: auth.state.user.id
+        })
       }
 
-      console.log(todo)
-
-      db.collection('/todos')
-        .doc(todo.id)
-        .set(todo)
+      await collections.todo.doc(todo.id).set(todo)
+    },
+    async removeTodo(_, todo) {
+      if (checkAccessable(todo)) {
+        await collections.todo
+          .doc(todo.id)
+          .delete()
+          .catch(err => alert(err.message))
+      }
+    },
+    changeStatus({ dispatch }, todo) {
+      if (checkAccessable(todo)) {
+        dispatch('setTodo', {
+          ...todo,
+          status: todo.status === 'COMPLETED' ? 'ACTIVE' : 'COMPLETED'
+        })
+      }
+    },
+    removeClearTodos({ state, dispatch }) {
+      state.todos
+        .filter(i => i.status === 'COMPLETED')
+        .forEach(i => dispatch('removeTodo', i))
     }
   },
   modules: {
@@ -41,24 +83,6 @@ export default new Vuex.Store({
   }
 })
 
-export const uuid = () => {
-  const s4 = () =>
-    Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1)
+store.dispatch('initTodo', collections.todo.orderBy('created', 'desc'))
 
-  return (
-    s4() +
-    s4() +
-    '-' +
-    s4() +
-    '-' +
-    s4() +
-    '-' +
-    s4() +
-    '-' +
-    s4() +
-    s4() +
-    s4()
-  )
-}
+export default store

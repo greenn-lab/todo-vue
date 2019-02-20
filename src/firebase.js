@@ -11,6 +11,33 @@ firebase.initializeApp({
   messagingSenderId: '782746313643'
 })
 
+export default firebase
+export const auth = firebase.auth()
 export const db = firebase.firestore()
 
-export default firebase
+export const utils = {
+  getServerTimestamp() {
+    return firebase.firestore.FieldValue.serverTimestamp()
+  },
+  generateUUID() {
+    const s4 = () =>
+      Math.floor((1 + Math.random()) * 0x10000)
+        .toString(16)
+        .substring(1)
+
+    return (
+      s4() +
+      s4() +
+      '-' +
+      s4() +
+      '-' +
+      s4() +
+      '-' +
+      s4() +
+      '-' +
+      s4() +
+      s4() +
+      s4()
+    )
+  }
+}

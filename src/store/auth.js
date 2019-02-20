@@ -1,7 +1,7 @@
-import firebase from '../firebase'
+import firebase, { db, auth, utils } from '../firebase'
 import store from './index'
 
-firebase.auth().onAuthStateChanged(user => {
+auth.onAuthStateChanged(user => {
   const userInfo = {}
 
   if (user) {
@@ -9,8 +9,15 @@ firebase.auth().onAuthStateChanged(user => {
       id: user.uid,
       name: user.displayName,
       image: user.photoURL,
-      created_at: firebase.firestore.FieldValue.serverTimestamp()
+      created: utils.getServerTimestamp()
     })
+
+    db.collection('/users')
+      .doc(userInfo.id)
+      .set({
+        ...userInfo,
+        lastLoggedIn: utils.getServerTimestamp()
+      })
   }
 
   store.commit('auth/setUser', userInfo)
@@ -31,18 +38,13 @@ export default {
   actions: {
     async loginByGoogle() {
       const googleProvider = new firebase.auth.GoogleAuthProvider()
-      await firebase
-        .auth()
-        .signInWithPopup(googleProvider)
-        .catch(err => console.log(err))
+      await auth.signInWithPopup(googleProvider).catch(err => console.log(err))
     },
     async loginByTwitter() {
-      await firebase
-        .auth()
-        .signInWithPopup(new firebase.auth.TwitterAuthProvider())
+      await auth.signInWithPopup(new firebase.auth.TwitterAuthProvider())
     },
     logout() {
-      firebase.auth().signOut()
+      auth.signOut()
     }
   }
 }
