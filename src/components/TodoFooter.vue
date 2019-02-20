@@ -1,35 +1,51 @@
 <template>
   <footer class="footer">
-      <span class="todo-count">
-        <strong>{{ output() }}</strong> left
-      </span>
+    <span class="todo-count">
+      <strong>{{ todosCount }} item{{ todosCount > 1 ? 's' : '' }}</strong>
+      left
+    </span>
     <ul class="filters">
       <li>
-        <a :class="{selected: filter == null}" @click="$emit('filtering', null)">All</a>
+        <a
+          href="#/all"
+          @click="setFilter('ALL')"
+          :class="{ selected: filter === 'ALL' }"
+          >All</a
+        >
       </li>
       <li>
-        <a :class="{selected: filter === false}" @click="$emit('filtering', false)">Active</a>
+        <a
+          href="#/active"
+          @click="setFilter('ACTIVE')"
+          :class="{ selected: filter === 'ACTIVE' }"
+          >Active</a
+        >
       </li>
       <li>
-        <a :class="{selected: filter === true}" @click="$emit('filtering', true)">Completed</a>
+        <a
+          href="#/completed"
+          @click="setFilter('COMPLETED')"
+          :class="{ selected: filter === 'COMPLETED' }"
+          >Completed</a
+        >
       </li>
     </ul>
-    <button class="clear-completed" @click="clearCompleted">Clear completed</button>
+    <button class="clear-completed" @click="removeClearTodos()">
+      Clear completed
+    </button>
   </footer>
 </template>
 
 <script>
-  export default {
-    name: 'TodoFooter',
-    props: ['todos', 'filter'],
-    methods: {
-      clearCompleted() {
-        this.todos = this.todos.filter(i => !i.completed)
-      },
-      output() {
-        const count = this.todos.filter(i => !i.completed).length
-        return `${count} item${count > 1 ? 's' : ''}`
-      }
+import { mapGetters, mapActions } from 'vuex'
+
+export default {
+  computed: mapGetters(['filter', 'todosCount']),
+  methods: {
+    ...mapActions(['removeClearTodos']),
+    setFilter(filter) {
+      this.$store.dispatch('setFilter', filter)
     }
   }
+}
 </script>

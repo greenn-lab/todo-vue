@@ -1,91 +1,57 @@
 <template>
-  <section class="todoapp">
-    <header>
-      <h1>todo</h1>
-      <input
-          v-model="newTodo"
-          @keyup.enter="add"
-          class="new-todo"
-          autofocus
-      >
-    </header>
-
-    <todo-list
-        :todos="todos"
-        :filter="filter"
-        @remove="remove"
-        @complete="complete"
-    />
-
-    <todo-footer
-        :todos="todos"
-        :filter="filter"
-        @filtering="filtering"
-    />
+  <Login v-if="!isLoggedIn" />
+  <section v-else class="todoapp">
+    <div>
+      <TodoHeader />
+      <TodoList />
+      <TodoFooter />
+    </div>
   </section>
 </template>
 
 <script>
-  import TodoList from './components/TodoList'
-  import TodoFooter from './components/TodoFooter'
+import { mapState, mapActions } from 'vuex'
 
-  import 'todomvc-app-css/index.css'
+import Login from './components/Login'
+import TodoHeader from './components/TodoHeader'
+import TodoList from './components/TodoList'
+import TodoFooter from './components/TodoFooter'
 
-  export const STORAGE_KEY = 'todoapp-storage-key'
+import 'todomvc-app-css/index.css'
 
 export default {
-  name: 'app',
   components: {
+    Login,
+    TodoHeader,
     TodoList,
     TodoFooter
   },
-  methods: {
-    add() {
-      if (this.newTodo) {
-        this.todos.push({
-          text: this.newTodo,
-          completed: false,
-          editing: false
-        })
-
-        this.newTodo = ''
-      }
-    },
-    editReady(index) {
-      this.todos[index].editing = true
-    },
-    editSave(index) {
-      this.todos[index].editing = false
-    },
-    remove(index) {
-      this.todos.splice(index, 1)
-    },
-    complete(index, checked) {
-      this.todos[index].completed = checked
-    },
-    filtering(filter) {
-      this.filter = filter
-    }
-  },
-  data() {
-    return {
-      todos: [],
-      newTodo: '',
-      editing: -1,
-      filter: null
-    }
-  },
-  watch: {
-    todos() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.todos))
-    },
-    todo() {
-      console.log('dirty checking "todo"')
-    }
-  },
-  created() {
-    if (localStorage.hasOwnProperty(STORAGE_KEY))
-      this.todos = JSON.parse(localStorage.getItem(STORAGE_KEY))
-  }
+  computed: mapState('auth', ['user', 'isLoggedIn']),
+  methods: mapActions('auth', ['loginByGoogle', 'loginByTwitter', 'logout'])
 }
 </script>
+
+<style lang="scss">
+.btn {
+  cursor: pointer;
+  margin: 1em 0;
+  font-size: 2em;
+}
+.user-info {
+  font-size: 2em;
+  line-height: 3em;
+
+  & > img {
+    border-radius: 50%;
+    height: 2em;
+    margin: 1em;
+    vertical-align: middle;
+    width: 2em;
+  }
+
+  & > .btn {
+    margin: 0 1em;
+    font-size: 0.5em;
+  }
+}
+</style>
